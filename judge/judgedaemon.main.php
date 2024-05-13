@@ -104,6 +104,7 @@ $lastrequest = '';
 function request(string $url, string $verb = 'GET', $data = '', bool $failonerror = true)
 {
     global $endpoints, $endpointID, $lastrequest;
+    $aux = $url;
 
     // Don't flood the log with requests for new judgings every few seconds.
     if (str_starts_with($url, 'judgehosts/fetch-work') && $verb==='POST') {
@@ -155,7 +156,7 @@ function request(string $url, string $verb = 'GET', $data = '', bool $failonerro
                 $errstr = "Authentication failed (error $status) while contacting $url. " .
                     "Check credentials in restapi.secret.";
                 break;
-            } elseif ($status < 200 || $status >= 300) {
+            } elseif (($status < 200 || $status >= 300) && (str_starts_with( $aux, 'contests') === false)) {
                 $json = dj_json_try_decode($response);
                 if ($json !== null) {
                     $response = var_export($json, true);
@@ -1402,6 +1403,39 @@ function judge(array $judgeTask): bool
     putenv('SCRIPTTIMELIMIT=' . $compare_config['script_timelimit']);
     putenv('SCRIPTMEMLIMIT='  . $compare_config['script_memory_limit']);
     putenv('SCRIPTFILELIMIT=' . $compare_config['script_filesize_limit']);
+
+    // Obtaining the number of tries
+	$contestid = $judgeTask['contestidjt'];
+    $url = sprintf('contests/%s/scoreboard', $contestid);
+    $scoreboard = request($url, 'GET');
+    $scoreboard = dj_json_decode($scoreboard);
+    $url = sprintf('contests/%s/submissions/%s', $contestid, $judgeTask['submitid']);
+    $submission = request($url, 'GET');
+    $submission = dj_json_decode($submission);
+    $teamid = $submission['team_id'];
+    $problemid = $submission['problem_id'];
+    $teams = $scoreboard['rows'];
+    $found = false;
+    logmsg(LOG_INFO, " team: " . $teamid . " problem: " . $problemid);
+    foreach ($teams as $team) {
+        if ($team['team_id'] === $teamid){
+            $problems = $team['problems'];
+            foreach ($problems as $problem) {
+                if ($problem['problem_id'] === $problemid){
+                    $numsubmissions = $problem['num_judged'];
+                    $found = true;
+                    break;
+                }
+            }
+        }
+        if ($found === true){
+            break;
+        }
+    }
+    
+    // Passing number of tries as environment variable
+    // setting environment variable
+    putenv("NUM_SUBS=$numsubmissions");
 
     $test_run_cmd = LIBJUDGEDIR . "/testcase_run.sh $cpuset_opt " .
         implode(' ', array_map('dj_escapeshellarg', [

@@ -17,6 +17,7 @@ const int EXIT_AC = 42;
 const int EXIT_WA = 43;
 
 std::ifstream judgein, judgeans;
+FILE *teammessage = NULL;
 FILE *judgemessage = NULL;
 FILE *diffpos = NULL;
 int judgeans_pos, stdin_pos;
@@ -138,6 +139,17 @@ int main(int argc, char **argv) {
 	diffpos = openfeedback(argv[3], "diffposition.txt", argv[0]);
 	openfile(judgein, argv[1], argv[0]);
 	openfile(judgeans, argv[2], argv[0]);
+	
+	std::string path = std::string(argv[3]) + "/teammessage.txt";
+	teammessage = fopen(path.c_str(), "a");
+
+	// Getting number of submissions from file
+	path = std::string(argv[3]) + "/num_subs.txt";
+	std::string num;
+	std::ifstream file(path);
+	std::getline(file, num);
+	file.close();
+
 
 	bool case_sensitive = false;
 	bool space_change_sensitive = false;
@@ -169,6 +181,31 @@ int main(int argc, char **argv) {
 	}
 	use_floats = float_abs_tol >= 0 || float_rel_tol >= 0;
 
+	// we read first line of output and, if it contains special header
+	// we identify the case and perform the action
+	std::string header;
+	path = std::string(argv[3]) + "/static.info";
+	std::ifstream smode(path);
+	std::getline(smode, header);
+	file.close();
+
+	if (header == "#1#"){ // static analyzers
+		path = std::string(argv[3]) + "parse_cppcheck.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_clang.py " + num;
+		system(path.c_str());
+	}
+	else if(header == "#2#"){ // ubsan
+		path = std::string(argv[3]) + "parse_ubsan.py " + num;
+		system(path.c_str());
+	}
+	else if(header == "#3#"){ // asan
+		path = std::string(argv[3]) + "parse_asan.py " + num;
+		system(path.c_str());
+	}
+	// now, perform default execution
+	//judgeans.seekg(currentPosition);
 	judgeans_pos = stdin_pos;
 	judgeans_line = stdin_line = 1;
 
@@ -234,12 +271,12 @@ int main(int argc, char **argv) {
 		} else if (case_sensitive) {
 			if (judge != team) {
 				wrong_answer("String tokens mismatch\nJudge: \"%s\"\nTeam: \"%s\"%s",
-				             judge.c_str(), team.c_str(), extra_msg.c_str());
+							judge.c_str(), team.c_str(), extra_msg.c_str());
 			}
 		} else {
 			if (!equal_case_insensitive(judge, team)) {
 				wrong_answer("String tokens mismatch\nJudge: \"%s\"\nTeam: \"%s\"%s",
-				             judge.c_str(), team.c_str(), extra_msg.c_str());
+							judge.c_str(), team.c_str(), extra_msg.c_str());
 			}
 		}
 		judgeans_pos += judge.length();
@@ -249,6 +286,6 @@ int main(int argc, char **argv) {
 	if (std::cin >> team) {
 		wrong_answer("Trailing output:\n%s", team.c_str());
 	}
-
+	
 	exit(EXIT_AC);
 }

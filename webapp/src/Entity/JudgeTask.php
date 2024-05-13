@@ -23,6 +23,7 @@ use JMS\Serializer\Annotation as Serializer;
 #[ORM\Index(columns: ['priority'], name: 'priority')]
 #[ORM\Index(columns: ['jobid'], name: 'jobid')]
 #[ORM\Index(columns: ['submitid'], name: 'submitid')]
+#[ORM\Index(columns: ['contestidjt'], name: 'contestidjt')]
 #[ORM\Index(columns: ['valid'], name: 'valid')]
 #[ORM\Index(columns: ['judgehostid', 'jobid'], name: 'judgehostid_jobid')]
 #[ORM\Index(columns: ['judgehostid', 'valid', 'priority'], name: 'judgehostid_valid_priority')]
@@ -61,6 +62,13 @@ class JudgeTask
     )]
     #[Serializer\Type('string')]
     private ?int $jobid = null;
+	
+	#[ORM\Column(
+        nullable: true,
+        options: ['comment' => 'ID for the contest of current submission', 'unsigned' => true]
+    )]
+    ##[Serializer\Type('string')]
+    private ?int $contestidjt = null;
 
     #[ORM\Column(
         nullable: true,
@@ -81,6 +89,7 @@ class JudgeTask
     #[Serializer\Type('string')]
     public function getSubmitid(): ?int
     {
+		$this->contestidjt = $this->submission?->getContest()->getCid();
         return $this->submission?->getSubmitid();
     }
 
@@ -240,6 +249,11 @@ class JudgeTask
     public function getSubmission(): ?Submission
     {
         return $this->submission;
+    }
+	
+	public function getContestId(): int
+    {
+        return $this->contestidjt;
     }
 
     public function setCompileScriptId(int $compile_script_id): JudgeTask

@@ -11,7 +11,60 @@
 
 TESTIN="$1";  shift
 PROGOUT="$1"; shift
+STATIC="$1"; shift
 
 # Run the program while redirecting input/output.
 # Note that "$@" expands to separate, quoted arguments.
-exec "$@" < "$TESTIN" > "$PROGOUT"
+
+# Modifications:
+# If the test input contains the special header, it will perform a different action than the default
+# Static analyzers will be executed before the default execution
+# For the instrumentation, the code has to be compiled and executed with flags
+# For each, the default run has to be executed to avoid triggering warnings
+# Otherwise, the default run is executed
+
+# Getting the header
+header=$(head -n 1 "$TESTIN" | tr -d '[:space:]')
+
+
+if [ "$header" = "#1#" ]; then # static analyzers
+		#indicating in static.info that we ran the static analyzers
+        echo "#1#" > "$STATIC"
+
+		# clang-tidy
+		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
+
+		# cppcheck
+		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
+
+        # has to be included to avoid errors
+		tail -n +1 $TESTIN | exec "$@" > "$PROGOUT"
+elif [ "$header" = "#2#" ]; then # ubsan
+        echo "#2#" > "$STATIC"
+
+        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
+            
+        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
+        cd execdir/
+        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxec 
+        cd ..
+        execdir/auxec < $TESTIN 2> "ubsan.log"
+        
+        tail -n +1 $TESTIN | exec "$@" > "$PROGOUT" 
+elif [ "$header" = "#3#" ]; then # asan
+        echo "#2#" > "$STATIC"
+
+        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
+            
+        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
+        cd execdir/
+        g++ -fsanitize=address $(find . -type f ! -name "program") -o auxec 
+        cd ..
+        execdir/auxec < $TESTIN 2> "asan.log"
+        
+        tail -n +1 $TESTIN | exec "$@" > "$PROGOUT" 
+else
+	# indicating in static.info that we executed a default run
+    echo "#4#" > "$STATIC"
+    exec "$@" < "$TESTIN" > "$PROGOUT"
+fi

@@ -27,7 +27,8 @@ runpipe: runpipe.cc $(LIBHEADERS) $(LIBSOURCES)
 install-judgehost:
 	$(INSTALL_PROG) -t $(DESTDIR)$(judgehost_libjudgedir) \
 		compile.sh build_executable.sh testcase_run.sh chroot-startstop.sh \
-		check_diff.sh evict version_check.sh
+		check_diff.sh evict version_check.sh parse_clang.py parse_cppcheck.py \
+		parse_ubsan.py parse_asan.py
 	$(INSTALL_DATA) -t $(DESTDIR)$(judgehost_libjudgedir) \
 		judgedaemon.main.php run-interactive.sh
 	$(INSTALL_PROG) -t $(DESTDIR)$(judgehost_bindir) \
