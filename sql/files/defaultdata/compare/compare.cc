@@ -204,6 +204,39 @@ int main(int argc, char **argv) {
 		path = std::string(argv[3]) + "parse_asan.py " + num;
 		system(path.c_str());
 	}
+	else if(header == "#4#"){ // static analyzers and ubsan
+	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_clang.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_ubsan.py " + num;
+		system(path.c_str());
+	}
+	else if(header == "#5#"){ // static analyzers and asan
+	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_clang.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_asan.py " + num;
+		system(path.c_str());
+	}
+	else if(header == "#6#"){ // all
+	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_clang.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_asan.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_ubsan.py " + num;
+		system(path.c_str());
+	}
 	// now, perform default execution
 	//judgeans.seekg(currentPosition);
 	judgeans_pos = stdin_pos;

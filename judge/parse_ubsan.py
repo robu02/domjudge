@@ -23,8 +23,9 @@ def parse_log(log_file):
     with open(log_file,'r') as src:
     # We do not check if the file exists as in DOMJudge enviroment this can be taken as granted 
     # Open the output file (append to not overwrite if the other tools output are ran previously to this one)
-        with open("teammessage.txt", "a") as output_file: 
+        with open("feedback/teammessage.txt", "a") as output_file: 
             if src.tell != 0:
+                output_file.write('=================================================================\n\n')
                 output_file.write("Errors detected by Ubsan: \n")
             for line in src:
                 if line == '\n':
@@ -63,7 +64,7 @@ def parse_log(log_file):
 
 
 # Path to the ubsan log file
-log_file_path = 'ubsan.log'
+log_file_path = 'feedback/ubsan.log'
 
 
 # Call the function to parse ubsan log and generate output

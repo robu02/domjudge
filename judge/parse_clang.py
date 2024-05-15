@@ -82,7 +82,7 @@ def sussemicolon(num, error_tidy):
         return'Be careful with if/while/for with a semicolon after the condition'
     else:
         return'Be careful with if/while/for with a semicolon after the condition' \
-              'as it can make the following code behave unexpectedly:' \
+              ' as it can make the following code behave unexpectedly:' \
               ' it can execute unconditionally or execute just once'
 
 
@@ -97,16 +97,17 @@ def redund(num, error_tidy):
 if __name__ == '__main__':
     errorsNotFound = True
     tries = int(sys.argv[1])
-    with open('clangtidy.yaml', ) as input_file:
+    with open('feedback/clangtidy.yaml', ) as input_file:
         yaml_input = yaml.safe_load(input_file)
 
-    with open("teammessage.txt", "a") as output_file:
+    with open("feedback/teammessage.txt", "a") as output_file:
         for error in yaml_input['Diagnostics']:
             function = switcher.get(error['DiagnosticName'])
             if function is not None:
                 if errorsNotFound:
+                    output_file.write('=================================================================\n\n')
                     output_file.write('Errors detected by Clang-tidy: \n')
                     errorsNotFound = False
                 message = function(tries, error)
                 output_file.write('Error ID: ' + error['DiagnosticName'] + '\n')
-                output_file.write('Message: ' + message + '\n')
+                output_file.write('Message: ' + message + '\n\n')

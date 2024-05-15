@@ -128,6 +128,7 @@ PROGRAM="execdir/program"
 logmsg $LOG_INFO "starting '$0', PID = $$"
 
 [ $# -ge 4 ] || error "not enough arguments. See script-code for usage."
+SCRIPT_DIR="$(dirname "$0")"
 TESTIN="$1";    shift
 TESTOUT="$1";   shift
 TIMELIMIT="$1"; shift
@@ -245,19 +246,71 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
         fi
     fi
 
-    # Passing the isntrumentation runs
+    # Passing the instrumentation runs
     if [ "$runtype" = "#2#" ]; then
     	#cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
-    	#cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
-        if [ -f ubsan.log ]; then
+    	cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/ubsan.log" ]; then
           mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
         fi
     fi
     if [ "$runtype" = "#3#" ]; then
     	#cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
-    	#cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
+    	cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
         if [ -f asan.log ]; then
           mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
+        fi
+    fi
+
+    # Static analizers and ubsan
+    if [ "$runtype" = "#4#" ]; then
+    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
+    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
+        if [ -f clangtidy.yaml ]; then
+          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
+        fi
+        if [ -f cppcheck.xml ]; then
+          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
+        fi
+        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/ubsan.log" ]; then
+          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
+        fi
+    fi
+
+    # Static analizers and asan
+    if [ "$runtype" = "#5#" ]; then
+    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
+    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
+        if [ -f clangtidy.yaml ]; then
+          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
+        fi
+        if [ -f cppcheck.xml ]; then
+          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
+        fi
+        cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/asan.log" ]; then
+          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
+        fi
+    fi
+
+    # All
+    if [ "$runtype" = "#6#" ]; then
+    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
+    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
+        if [ -f clangtidy.yaml ]; then
+          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
+        fi
+        if [ -f cppcheck.xml ]; then
+          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
+        fi
+        cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/asan.log" ]; then
+          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
+        fi
+        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/ubsan.log" ]; then
+          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
         fi
     fi
 

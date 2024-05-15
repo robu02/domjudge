@@ -84,12 +84,17 @@
             {% if runs is empty %}
                 <p class="nodata">No evaluations available</p>
             {% else %}
+                {% set feedback = false %}
                 {% for run in runs %}
                     {% if run.team_message is not empty %}
                         <pre class="output_text">
 {{  run.team_message }}</pre>
+                        {% set feedback = true %}
                     {%  endif %}
                 {% endfor %}
+                {% if feedback == false %}
+                  <p class="nodata">No evaluations available</p>
+                {% endif %}
             {% endif %} {# not runs is empty #}
             <h4 class="text-center">Run(s) on the provided sample data</h4>
 

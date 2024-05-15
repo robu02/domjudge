@@ -27,12 +27,13 @@ def parse_xml(xml_file):
     # Open the output file (append to not overwrite if the other tools output are ran previously to this one)
 
     errorNotfound = True
-    with open("teammessage.txt", "a") as output_file: 
+    with open("feedback/teammessage.txt", "a") as output_file: 
         # Iterate over each error in the XML
         for error in root.findall('.//error'):
             if error.attrib['id'] not in errores_relevantes_cppcheck:
                 continue
             if errorNotfound:
+                output_file.write('=================================================================\n\n')
                 output_file.write("Errors detected by Cppcheck: \n")
                 errorNotfound = False
             # Get the corresponding information of the error
@@ -58,7 +59,7 @@ def parse_xml(xml_file):
 
 
 # Path to the XML file
-xml_file_path = 'cppcheck.xml'
+xml_file_path = 'feedback/cppcheck.xml'
 
 # Relevant errors of Cppcheck
 errores_relevantes_cppcheck = ['uninitvar',
