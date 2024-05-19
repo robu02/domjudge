@@ -224,7 +224,14 @@ int main(int argc, char **argv) {
 		path = std::string(argv[3]) + "parse_asan.py " + num;
 		system(path.c_str());
 	}
-	else if(header == "#6#"){ // all
+	else if(header == "#6#"){ // asan and ubsan
+	    path = std::string(argv[3]) + "parse_asan.py " + num;
+		system(path.c_str());
+		
+		path = std::string(argv[3]) + "parse_ubsan.py " + num;
+		system(path.c_str());
+	}
+	else if(header == "#7#"){ // all
 	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
 		system(path.c_str());
 		

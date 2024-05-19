@@ -33,8 +33,6 @@ def parse_xml(xml_file):
             if error.attrib['id'] not in errores_relevantes_cppcheck:
                 continue
             if errorNotfound:
-                output_file.write('=================================================================\n\n')
-                output_file.write("Errors detected by Cppcheck: \n")
                 errorNotfound = False
             # Get the corresponding information of the error
             locationExists = False

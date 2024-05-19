@@ -129,6 +129,24 @@ elif [ "$header" = "#6#" ]; then # static and asan
         g++ -fsanitize=address $(find . -type f ! -name "program" ! -name "auxecub") -o auxecad
         cd ..
         
+        #removing the header
+        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        
+        execdir/auxecad < "$TESTIN" 2>"asan.log"
+        execdir/auxecub < "$TESTIN" 2>"ubsan.log"
+        
+        exec "$@" < "$TESTIN" > "$PROGOUT"
+elif [ "$header" = "#7#" ]; then # static and asan
+        echo "#7#" > "$STATIC"
+
+        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
+            
+        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
+        cd execdir/
+        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxecub
+        g++ -fsanitize=address $(find . -type f ! -name "program" ! -name "auxecub") -o auxecad
+        cd ..
+        
         # clang-tidy
 		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program" ! -name "auxecub" ! -name "auxecad")
 
