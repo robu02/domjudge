@@ -168,7 +168,7 @@ touch system.out                 # Judging system output (info/debug/error)
 touch program.out program.err    # Program output and stderr (for extra information)
 touch program.meta runguard.err  # Metadata and runguard stderr
 touch compare.meta compare.err   # Compare runguard metadata and stderr
-touch static.info				 # File to pass static run information to compare
+# touch static.info				 # File to pass static run information to compare
 
 logmsg $LOG_INFO "setting up testing (chroot) environment"
 
@@ -194,7 +194,7 @@ logmsg $LOG_INFO "running program"
 #In addition to testdata.in and program.out, we pass the newly
 #created static.info file with information of run
 
-RUNARGS="testdata.in program.out static.info"
+RUNARGS="testdata.in program.out"
 if [ $COMBINED_RUN_COMPARE -eq 1 ]; then
 	# A combined run and compare script may now already need the
 	# feedback directory, and perhaps access to the test answers (but
@@ -234,7 +234,8 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
 	chmod a+w feedback
 
 	# Passing the scripts to parse the static analyzers to make them accesible to compare
-    runtype=$(head -n 1 static.info | tr -d '[:space:]')
+    runtype=$(head -n 1 "testdata.in" | tr -d '[:space:]')
+    echo "$runtype" > "feedback/runtype.info"
     if [ "$runtype" = "#1#" ]; then
     	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
     	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
@@ -294,8 +295,20 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
         fi
     fi
 
-    # All
+    # asan and  ubsan
     if [ "$runtype" = "#6#" ]; then
+    	cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/asan.log" ]; then
+          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
+        fi
+        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
+        if [ -f "$WORKDIR/ubsan.log" ]; then
+          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
+        fi
+    fi
+
+    # All
+    if [ "$runtype" = "#7#" ]; then
     	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
     	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
         if [ -f clangtidy.yaml ]; then
@@ -315,7 +328,7 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
     fi
 
 	# move static.ifo to make it easier for compare to manage
-	mv static.info feedback/
+	# mv static.info feedback/
 
 	# Copying environment variable into accesible file to compare.cc
 	echo "$NUM_SUBS" > feedback/num_subs.txt

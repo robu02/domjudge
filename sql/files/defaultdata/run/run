@@ -11,7 +11,6 @@
 
 TESTIN="$1";  shift
 PROGOUT="$1"; shift
-STATIC="$1"; shift
 
 # Run the program while redirecting input/output.
 # Note that "$@" expands to separate, quoted arguments.
@@ -29,7 +28,7 @@ header=$(head -n 1 "$TESTIN" | tr -d '[:space:]')
 
 if [ "$header" = "#1#" ]; then # static analyzers
 		#indicating in static.info that we ran the static analyzers
-        echo "#1#" > "$STATIC"
+        #echo "#1#" > "$STATIC"
 
 		# clang-tidy
 		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
@@ -37,13 +36,10 @@ if [ "$header" = "#1#" ]; then # static analyzers
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
 		
-		#removing the header
-		tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
 
-        # has to be included to avoid errors
-		exec "$@" < "$TESTIN" > "$PROGOUT"
+		tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#2#" ]; then # ubsan
-        echo "#2#" > "$STATIC"
+        #echo "#2#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -52,14 +48,11 @@ elif [ "$header" = "#2#" ]; then # ubsan
         g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxec 
         cd ..
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        tail -n +2 "$TESTIN" | execdir/auxec 2>"ubsan.log"
         
-        execdir/auxec< "$TESTIN" 2>"ubsan.log"
-        
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#3#" ]; then # asan
-        echo "#3#" > "$STATIC"
+        #echo "#3#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -68,14 +61,11 @@ elif [ "$header" = "#3#" ]; then # asan
         g++ -fsanitize=address $(find . -type f ! -name "program") -o auxec 
         cd ..
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        tail -n +2 "$TESTIN" | execdir/auxec 2>"asan.log"
         
-        execdir/auxec < "$TESTIN" 2>"asan.log"
-        
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#4#" ]; then # static and ubsan
-        echo "#4#" > "$STATIC"
+        #echo "#4#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -90,14 +80,11 @@ elif [ "$header" = "#4#" ]; then # static and ubsan
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        tail -n +2 "$TESTIN" | execdir/auxec 2>"ubsan.log"
         
-        execdir/auxec < "$TESTIN" 2>"ubsan.log"
-        
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#5#" ]; then # static and asan
-        echo "#5#" > "$STATIC"
+        #echo "#5#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -112,14 +99,11 @@ elif [ "$header" = "#5#" ]; then # static and asan
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
         
-        execdir/auxec < "$TESTIN" 2>"asan.log"
-        
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#6#" ]; then # static and asan
-        echo "#6#" > "$STATIC"
+        #echo "#6#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -129,15 +113,12 @@ elif [ "$header" = "#6#" ]; then # static and asan
         g++ -fsanitize=address $(find . -type f ! -name "program" ! -name "auxecub") -o auxecad
         cd ..
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
+        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
+        tail -n +2 "$TESTIN" | execdir/auxecub 2>"ubsan.log"
         
-        execdir/auxecad < "$TESTIN" 2>"asan.log"
-        execdir/auxecub < "$TESTIN" 2>"ubsan.log"
-        
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
 elif [ "$header" = "#7#" ]; then # static and asan
-        echo "#7#" > "$STATIC"
+        #echo "#7#" > "$STATIC"
 
         #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
             
@@ -153,13 +134,15 @@ elif [ "$header" = "#7#" ]; then # static and asan
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program" ! -name "auxecub" ! -name "auxecad")
         
-        #removing the header
-        tail -n +2 "$TESTIN" > temp && mv temp "$TESTIN"
         
-        execdir/auxecad < "$TESTIN" 2>"asan.log"
-        execdir/auxecub < "$TESTIN" 2>"ubsan.log"
+        #execdir/auxecad < tail -n +2 "$TESTIN" 2>"asan.log"
+        #execdir/auxecub < tail -n +2 "$TESTIN" 2>"ubsan.log"
         
-        exec "$@" < "$TESTIN" > "$PROGOUT"
+        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
+        tail -n +2 "$TESTIN" | execdir/auxecub 2>"ubsan.log"
+        
+        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
+        #echo "exitcode: 0" > "program.meta"
 else
 	# indicating in static.info that we executed a default run
     echo "#7#" > "$STATIC"

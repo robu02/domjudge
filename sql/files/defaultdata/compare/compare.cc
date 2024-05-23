@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
 	// we read first line of output and, if it contains special header
 	// we identify the case and perform the action
 	std::string header;
-	path = std::string(argv[3]) + "/static.info";
+	path = std::string(argv[3]) + "/runtype.info";
 	std::ifstream smode(path);
 	std::getline(smode, header);
 	file.close();
