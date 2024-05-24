@@ -22,13 +22,22 @@ PROGOUT="$1"; shift
 # For each, the default run has to be executed to avoid triggering warnings
 # Otherwise, the default run is executed
 
-# Getting the header
+# checking for the header
 header=$(head -n 1 "$TESTIN" | tr -d '[:space:]')
+static="0"
+ubsan="0"
+asan="0"
+start_of_heading=$(printf "\x01")
+# getting the run options
+if [ "$header" = "$start_of_heading" ]; then
+    option=$(sed -n '2p' "$TESTIN")
+    static=$(echo "$option" | cut -c1)
+    ubsan=$(echo "$option" | cut -c2)
+    asan=$(echo "$option" | cut -c3)
+fi
 
 
-if [ "$header" = "#1#" ]; then # static analyzers
-		#indicating in static.info that we ran the static analyzers
-        #echo "#1#" > "$STATIC"
+if [ "$static" = "1" ]; then # static analyzers
 
 		# clang-tidy
 		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
@@ -36,115 +45,25 @@ if [ "$header" = "#1#" ]; then # static analyzers
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
 		
+fi
+if [ "$ubsan" = "1" ]; then # ubsan
 
-		tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#2#" ]; then # ubsan
-        #echo "#2#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
         cd execdir/
         g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxec 
         cd ..
         
-        tail -n +2 "$TESTIN" | execdir/auxec 2>"ubsan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#3#" ]; then # asan
-        #echo "#3#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
+        tail -n +3 "$TESTIN" | execdir/auxec 2>"ubsan.log"
+fi
+if [ "$asan" = "1" ]; then # asan
         cd execdir/
         g++ -fsanitize=address $(find . -type f ! -name "program") -o auxec 
         cd ..
         
-        tail -n +2 "$TESTIN" | execdir/auxec 2>"asan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#4#" ]; then # static and ubsan
-        #echo "#4#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
-        cd execdir/
-        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxec 
-        cd ..
-        
-        # clang-tidy
-		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
-
-		# cppcheck
-		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
-        
-        tail -n +2 "$TESTIN" | execdir/auxec 2>"ubsan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#5#" ]; then # static and asan
-        #echo "#5#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
-        cd execdir/
-        g++ -fsanitize=address $(find . -type f ! -name "program") -o auxec 
-        cd ..
-        
-        # clang-tidy
-		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
-
-		# cppcheck
-		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
-        
-        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#6#" ]; then # static and asan
-        #echo "#6#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
-        cd execdir/
-        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxecub
-        g++ -fsanitize=address $(find . -type f ! -name "program" ! -name "auxecub") -o auxecad
-        cd ..
-        
-        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
-        tail -n +2 "$TESTIN" | execdir/auxecub 2>"ubsan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-elif [ "$header" = "#7#" ]; then # static and asan
-        #echo "#7#" > "$STATIC"
-
-        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
-            
-        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
-        cd execdir/
-        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxecub
-        g++ -fsanitize=address $(find . -type f ! -name "program" ! -name "auxecub") -o auxecad
-        cd ..
-        
-        # clang-tidy
-		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program" ! -name "auxecub" ! -name "auxecad")
-
-		# cppcheck
-		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program" ! -name "auxecub" ! -name "auxecad")
-        
-        
-        #execdir/auxecad < tail -n +2 "$TESTIN" 2>"asan.log"
-        #execdir/auxecub < tail -n +2 "$TESTIN" 2>"ubsan.log"
-        
-        tail -n +2 "$TESTIN" | execdir/auxecad 2>"asan.log"
-        tail -n +2 "$TESTIN" | execdir/auxecub 2>"ubsan.log"
-        
-        tail -n +2 "$TESTIN" | "$@" > "$PROGOUT"
-        #echo "exitcode: 0" > "program.meta"
+        tail -n +3 "$TESTIN" | execdir/auxec 2>"asan.log"
+fi
+# if the header is present, we must avoid it when passing test data to executable
+if [ "$header" = "$start_of_heading" ]; then
+    tail -n +3 "$TESTIN" | "$@" > "$PROGOUT"
 else
-	# indicating in static.info that we executed a default run
-    echo "#7#" > "$STATIC"
     exec "$@" < "$TESTIN" > "$PROGOUT"
 fi

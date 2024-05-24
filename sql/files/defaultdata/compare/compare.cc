@@ -181,71 +181,35 @@ int main(int argc, char **argv) {
 	}
 	use_floats = float_abs_tol >= 0 || float_rel_tol >= 0;
 
-	// we read first line of output and, if it contains special header
-	// we identify the case and perform the action
-	std::string header;
+	// we read from runtype.info if we should perform any of the actions
+	// related to the submission analysis
+	std::string options;
 	path = std::string(argv[3]) + "/runtype.info";
-	std::ifstream smode(path);
-	std::getline(smode, header);
+	std::ifstream rmode(path);
+	std::getline(rmode, options);
 	file.close();
+	char statics = options[0];
+    char ubsan = options[1];
+    char asan = options[2];
+	
 
-	if (header == "#1#"){ // static analyzers
+	if (statics == '1'){ // static analyzers
 		path = std::string(argv[3]) + "parse_cppcheck.py " + num;
 		system(path.c_str());
 		
 		path = std::string(argv[3]) + "parse_clang.py " + num;
 		system(path.c_str());
 	}
-	else if(header == "#2#"){ // ubsan
+	else if(ubsan == '1'){ // ubsan
 		path = std::string(argv[3]) + "parse_ubsan.py " + num;
 		system(path.c_str());
 	}
-	else if(header == "#3#"){ // asan
+	else if(asan == '1'){ // asan
 		path = std::string(argv[3]) + "parse_asan.py " + num;
 		system(path.c_str());
 	}
-	else if(header == "#4#"){ // static analyzers and ubsan
-	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_clang.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_ubsan.py " + num;
-		system(path.c_str());
-	}
-	else if(header == "#5#"){ // static analyzers and asan
-	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_clang.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_asan.py " + num;
-		system(path.c_str());
-	}
-	else if(header == "#6#"){ // asan and ubsan
-	    path = std::string(argv[3]) + "parse_asan.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_ubsan.py " + num;
-		system(path.c_str());
-	}
-	else if(header == "#7#"){ // all
-	    path = std::string(argv[3]) + "parse_cppcheck.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_clang.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_asan.py " + num;
-		system(path.c_str());
-		
-		path = std::string(argv[3]) + "parse_ubsan.py " + num;
-		system(path.c_str());
-	}
+	
 	// now, perform default execution
-	//judgeans.seekg(currentPosition);
 	judgeans_pos = stdin_pos;
 	judgeans_line = stdin_line = 1;
 

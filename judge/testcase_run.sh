@@ -232,11 +232,24 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
 	# Create dir for feedback files and make it writable for $RUNUSER
 	mkdir feedback
 	chmod a+w feedback
+ 
 
-	# Passing the scripts to parse the static analyzers to make them accesible to compare
-    runtype=$(head -n 1 "testdata.in" | tr -d '[:space:]')
-    echo "$runtype" > "feedback/runtype.info"
-    if [ "$runtype" = "#1#" ]; then
+	#obtaining the run information
+    header=$(head -n 1 "testdata.in" | tr -d '[:space:]')
+    option="000"
+    static="0"
+    ubsan="0"
+    asan="0"
+    start_of_heading=$(printf "\x01")
+    if [ "$header" = "$start_of_heading" ]; then
+        option=$(sed -n '2p' "$TESTIN")
+        static=$(echo "$option" | cut -c1)
+        ubsan=$(echo "$option" | cut -c2)
+        asan=$(echo "$option" | cut -c3)
+    fi
+    echo "$option" >> "feedback/runtype.info"
+    # Passing the scripts to parse the static analyzers to make them accesible to compare
+    if [ "$static" = "1" ]; then
     	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
     	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
         if [ -f clangtidy.yaml ]; then
@@ -248,87 +261,20 @@ if [ $COMBINED_RUN_COMPARE -eq 0 ]; then
     fi
 
     # Passing the instrumentation runs
-    if [ "$runtype" = "#2#" ]; then
+    if [ "$ubsan" = "1" ]; then
     	#cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
     	cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
         if [ -f "$WORKDIR/ubsan.log" ]; then
           mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
         fi
     fi
-    if [ "$runtype" = "#3#" ]; then
+    if [ "$asan" = "1" ]; then
     	#cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
     	cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
         if [ -f asan.log ]; then
           mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
         fi
     fi
-
-    # Static analizers and ubsan
-    if [ "$runtype" = "#4#" ]; then
-    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
-    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
-        if [ -f clangtidy.yaml ]; then
-          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
-        fi
-        if [ -f cppcheck.xml ]; then
-          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
-        fi
-        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/ubsan.log" ]; then
-          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
-        fi
-    fi
-
-    # Static analizers and asan
-    if [ "$runtype" = "#5#" ]; then
-    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
-    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
-        if [ -f clangtidy.yaml ]; then
-          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
-        fi
-        if [ -f cppcheck.xml ]; then
-          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
-        fi
-        cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/asan.log" ]; then
-          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
-        fi
-    fi
-
-    # asan and  ubsan
-    if [ "$runtype" = "#6#" ]; then
-    	cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/asan.log" ]; then
-          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
-        fi
-        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/ubsan.log" ]; then
-          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
-        fi
-    fi
-
-    # All
-    if [ "$runtype" = "#7#" ]; then
-    	cp "$SCRIPT_DIR/parse_clang.py" "$WORKDIR/feedback"
-    	cp "$SCRIPT_DIR/parse_cppcheck.py" "$WORKDIR/feedback"
-        if [ -f clangtidy.yaml ]; then
-          mv "$WORKDIR/clangtidy.yaml" "$WORKDIR/feedback/"
-        fi
-        if [ -f cppcheck.xml ]; then
-          mv "$WORKDIR/cppcheck.xml" "$WORKDIR/feedback/"
-        fi
-        cp "$SCRIPT_DIR/parse_asan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/asan.log" ]; then
-          mv "$WORKDIR/asan.log" "$WORKDIR/feedback/"
-        fi
-        cp "$SCRIPT_DIR/parse_ubsan.py" "$WORKDIR/feedback"
-        if [ -f "$WORKDIR/ubsan.log" ]; then
-          mv "$WORKDIR/ubsan.log" "$WORKDIR/feedback/"
-        fi
-    fi
-
-	# move static.ifo to make it easier for compare to manage
-	# mv static.info feedback/
 
 	# Copying environment variable into accesible file to compare.cc
 	echo "$NUM_SUBS" > feedback/num_subs.txt
