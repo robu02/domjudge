@@ -14,9 +14,9 @@ switcher = {'performance-avoid-endl': lambda x, y: avoidendl(x, y),
 
 
 def avoidendl(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'Try avoiding endl'
-    elif num == 1:
+    elif num == 2:
         return'Instead of endl you can use "\\n"'
     else:
         return 'Instead of endl you should use "\\n", endl can cause errors as it flushes the output buffer, ' \
@@ -24,7 +24,7 @@ def avoidendl(num, error_tidy):
 
 
 def narrow(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'Try avoiding operating between different types as it can cause unexpected behavior'
     else:
         return error_tidy['DiagnosticMessage']['Message'] + ', this is best avoided as it can lead to unexpected ' \
@@ -32,9 +32,9 @@ def narrow(num, error_tidy):
 
 
 def rangecopy(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'When using for each loops you should avoid copying data when you do not need to'
-    elif num == 1:
+    elif num == 2:
         return'If you use a for each loop be careful not to use expensive data types without const reference ' \
               'as a loop variable.'
     else:
@@ -43,18 +43,18 @@ def rangecopy(num, error_tidy):
 
 
 def valueparam(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'You should be careful when passing expensive to copy data types as an argument'
-    elif num == 1:
+    elif num == 2:
         return'You should pass arguments of expensive to copy data types by reference instead of copying them'
     else:
         return error_tidy['DiagnosticMessage']['Message']
 
 
 def branchclone(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'There are repeated branches in your code'
-    elif num == 1:
+    elif num == 2:
         return'Be careful with your conditional statements as you might have repeated some branches'
     else:
         return'Be careful with your conditional statements as you might have repeated some branches, ' \
@@ -62,9 +62,9 @@ def branchclone(num, error_tidy):
 
 
 def intdiv(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'You are losing precision with integer division. Is that intended?'
-    elif num == 1:
+    elif num == 2:
         return'The result of integer division is possibly truncated before conversion'
     else:
         return'Check your integer divisions as you might be truncating the result before ' \
@@ -73,9 +73,9 @@ def intdiv(num, error_tidy):
 
 
 def sussemicolon(num, error_tidy):
-    if num == 0:
+    if num <= 1:
         return'There are suspicious semicolons in your code'
-    elif num == 1:
+    elif num == 2:
         return'Be careful with if/while/for with a semicolon after the condition'
     else:
         return'Be careful with if/while/for with a semicolon after the condition' \
@@ -84,7 +84,7 @@ def sussemicolon(num, error_tidy):
 
 
 def redund(num, error_tidy):
-    if num == 0:
+    if num < 1:
         return'There are redundant conditions in your code'
     else:
         return'There are redundant conditions in your code, check your conditional statements as you might have ' \
@@ -92,7 +92,6 @@ def redund(num, error_tidy):
 
 
 if __name__ == '__main__':
-    errorsNotFound = True
     tries = int(sys.argv[1])
     with open('feedback/clangtidy.yaml', ) as input_file:
         yaml_input = yaml.safe_load(input_file)
@@ -101,8 +100,5 @@ if __name__ == '__main__':
         for error in yaml_input['Diagnostics']:
             function = switcher.get(error['DiagnosticName'])
             if function is not None:
-                if errorsNotFound:
-                    errorsNotFound = False
                 message = function(tries, error)
-                output_file.write('Error ID: ' + error['DiagnosticName'] + '\n')
                 output_file.write('Message: ' + message + '\n')

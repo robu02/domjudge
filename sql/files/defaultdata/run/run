@@ -28,7 +28,7 @@ static="0"
 ubsan="0"
 asan="0"
 start_of_heading=$(printf "\x01")
-# getting the run options
+# getting the run option
 if [ "$header" = "$start_of_heading" ]; then
     option=$(sed -n '2p' "$TESTIN")
     static=$(echo "$option" | cut -c1)
@@ -38,6 +38,8 @@ fi
 
 
 if [ "$static" = "1" ]; then # static analyzers
+		#indicating in static.info that we ran the static analyzers
+        #echo "#1#" > "$STATIC"
 
 		# clang-tidy
 		clang-tidy -checks=* --export-fixes=clangtidy.yaml $(find execdir/ -type f ! -name "program")
@@ -45,25 +47,43 @@ if [ "$static" = "1" ]; then # static analyzers
 		# cppcheck
 		cppcheck --xml --output-file=cppcheck.xml --enable=all --quiet $(find execdir/ -type f ! -name "program")
 		
+
+		# tail -n +3 "$TESTIN" | "$@" > "$PROGOUT"
 fi
 if [ "$ubsan" = "1" ]; then # ubsan
+        #echo "#2#" > "$STATIC"
 
+        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
+            
+        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
         cd execdir/
-        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxec 
+        g++ -fsanitize=undefined $(find . -type f ! -name "program") -o auxecub 
         cd ..
         
-        tail -n +3 "$TESTIN" | execdir/auxec 2>"ubsan.log"
+        tail -n +3 "$TESTIN" | execdir/auxecub 2>"ubsan.log"
+        rm execdir/auxecub
+        
+        # tail -n +3 "$TESTIN" | "$@" > "$PROGOUT"
 fi
 if [ "$asan" = "1" ]; then # asan
+        #echo "#3#" > "$STATIC"
+
+        #gcc "$FILE" -o auxec -fsanitize=address (-static-libasan) -g
+            
+        #gcc -fsanitize=undefined "$FILE" 2> "ubsan.log"
         cd execdir/
-        g++ -fsanitize=address $(find . -type f ! -name "program") -o auxec 
+        g++ -fsanitize=address $(find . -type f ! -name "program" ) -o auxecas 
         cd ..
         
-        tail -n +3 "$TESTIN" | execdir/auxec 2>"asan.log"
+        tail -n +3 "$TESTIN" | execdir/auxecas 2>"asan.log"
+        rm execdir/auxecas
+        
+        # tail -n +3 "$TESTIN" | "$@" > "$PROGOUT"
 fi
-# if the header is present, we must avoid it when passing test data to executable
 if [ "$header" = "$start_of_heading" ]; then
     tail -n +3 "$TESTIN" | "$@" > "$PROGOUT"
 else
+	# indicating in static.info that we executed a default run
+    # echo "#7#" > "$STATIC"
     exec "$@" < "$TESTIN" > "$PROGOUT"
 fi

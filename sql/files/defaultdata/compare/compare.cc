@@ -181,8 +181,8 @@ int main(int argc, char **argv) {
 	}
 	use_floats = float_abs_tol >= 0 || float_rel_tol >= 0;
 
-	// we read from runtype.info if we should perform any of the actions
-	// related to the submission analysis
+	// we read first line of output and, if it contains special header
+	// we identify the case and perform the action
 	std::string options;
 	path = std::string(argv[3]) + "/runtype.info";
 	std::ifstream rmode(path);
@@ -200,16 +200,17 @@ int main(int argc, char **argv) {
 		path = std::string(argv[3]) + "parse_clang.py " + num;
 		system(path.c_str());
 	}
-	else if(ubsan == '1'){ // ubsan
+	if(ubsan == '1'){ // ubsan
 		path = std::string(argv[3]) + "parse_ubsan.py " + num;
 		system(path.c_str());
 	}
-	else if(asan == '1'){ // asan
+	if(asan == '1'){ // asan
 		path = std::string(argv[3]) + "parse_asan.py " + num;
 		system(path.c_str());
 	}
 	
 	// now, perform default execution
+	//judgeans.seekg(currentPosition);
 	judgeans_pos = stdin_pos;
 	judgeans_line = stdin_line = 1;
 

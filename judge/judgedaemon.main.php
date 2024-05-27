@@ -1416,7 +1416,7 @@ function judge(array $judgeTask): bool
     $problemid = $submission['problem_id'];
     $teams = $scoreboard['rows'];
     $found = false;
-    logmsg(LOG_INFO, " team: " . $teamid . " problem: " . $problemid);
+    // logmsg(LOG_INFO, " team: " . $teamid . " problem: " . $problemid);
     foreach ($teams as $team) {
         if ($team['team_id'] === $teamid){
             $problems = $team['problems'];

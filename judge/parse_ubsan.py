@@ -11,9 +11,10 @@ superficialInfo = True #Will include only the id of the error
 information = False #Will include the id of the problem and if exists, the location
 inDepthInfo = False #Will include the id of the problem the message and if exists, the location
 
-if tries == 1: 
+if tries == 2: 
     information = True
-elif tries > 1:
+elif tries > 2:
+    superficialInfo = False
     information = True
     inDepthInfo = True
     
@@ -52,7 +53,8 @@ def parse_log(log_file):
                 
 
                 # Write error information to output file
-                output_file.write(f"Error ID: {error_id}\n")
+                if superficialInfo:
+                    output_file.write(f"Error: {error_id}\n")
                 if inDepthInfo:
                     output_file.write(f"Message: {message}\n")
                 if information:
